@@ -9,6 +9,8 @@ import type { ApiEnv } from './env';
 import type { Logger } from './log';
 import { intentRoutes } from './routes/intents';
 import { pairingRoutes } from './routes/pairing';
+import { pushRoutes } from './routes/push';
+import type { Pusher } from './push/notify';
 import { walletRoutes } from './routes/wallets';
 
 export interface AppContext {
@@ -19,6 +21,7 @@ export interface AppContext {
   db: Db;
   /** Contract reads (defaults to a client on `server`). */
   client?: FosayClient;
+  pusher?: Pusher;
 }
 
 /** Builds the HTTP app. Routes are added per feature; all dependencies are injected. */
@@ -28,6 +31,7 @@ export function createApp(ctx: AppContext): Hono {
   app.get('/health', (c) => c.json({ ok: true, network: ctx.cfg.network }));
   app.route('/wallets', walletRoutes(ctx.db));
   app.route('/intents', intentRoutes(ctx.db));
+  if (ctx.pusher) app.route('/push', pushRoutes(ctx.db, ctx.pusher));
   app.route('/', pairingRoutes(ctx.db, ctx.cfg, ctx.client ?? new FosayClient(ctx.cfg, ctx.server)));
   app.onError((err, c) => {
     ctx.log('error', 'unhandled error', { path: c.req.path, error: err.message });
