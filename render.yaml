@@ -6,7 +6,7 @@ services:
     name: fosay-api
     runtime: node
     plan: free
-    region: oregon
+    region: virginia
     # the API imports the workspace SDK, so it builds from the repository root
     buildCommand: corepack pnpm install --frozen-lockfile --filter @fosay/api...
     startCommand: cd apps/api && ./node_modules/.bin/tsx src/index.ts
