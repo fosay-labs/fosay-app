@@ -1,6 +1,6 @@
 import { FosayClient, FosayError } from '@fosay/sdk';
 import type { contract } from '@stellar/stellar-sdk';
-import { SmartAccountKit } from 'smart-account-kit';
+import { IndexedDBStorage, SmartAccountKit } from 'smart-account-kit';
 
 import { RELAYER_URL, publicConfig } from './config';
 
@@ -21,6 +21,9 @@ export function getKit(): SmartAccountKit {
     ed25519VerifierAddress: publicConfig.ed25519VerifierId,
     relayerUrl: RELAYER_URL,
     rpName: 'FOSAY',
+    // The kit defaults to in-memory storage, which forgets the wallet on reload. Only
+    // credential ids and public keys are stored; passkey private keys stay in the authenticator.
+    storage: new IndexedDBStorage('fosay'),
   });
   return kit;
 }

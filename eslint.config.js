@@ -13,6 +13,7 @@ export default tseslint.config(
       '**/src/generated/**',
       '**/coverage/**',
       'apps/web/public/sw.js',
+      '**/_e2e-*',
     ],
   },
   js.configs.recommended,
