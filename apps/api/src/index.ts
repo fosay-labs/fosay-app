@@ -4,7 +4,7 @@ import { serve } from '@hono/node-server';
 import { createApp } from './app';
 import { connectDb } from './db/client';
 import { createIndexer } from './indexer/poller';
-import { startKeeper } from './keeper';
+import { keepWallet, startKeeper } from './keeper';
 import { createPusher } from './push/notify';
 import { loadEnv } from './env';
 import { jsonLogger } from './log';
@@ -13,7 +13,16 @@ const { env, cfg } = loadEnv(process.env as Record<string, string | undefined>);
 const server = rpcServer(cfg);
 const { db } = await connectDb(env.DATABASE_URL);
 const pusher = createPusher(env, db, jsonLogger);
-const app = createApp({ env, cfg, server, log: jsonLogger, db, pusher });
+const keeperSecret = env.KEEPER_SECRET;
+const onPaired = keeperSecret
+  ? (wallet: string, payRule: number) => {
+      // warm a newly connected agent's storage so its first payment is cheap
+      keepWallet({ db, cfg, server, secret: keeperSecret, log: jsonLogger }, wallet, payRule).catch(
+        (e: unknown) => jsonLogger('warn', 'post-pairing keeper failed', { wallet, error: String(e) }),
+      );
+    }
+  : undefined;
+const app = createApp({ env, cfg, server, log: jsonLogger, db, pusher, ...(onPaired ? { onPaired } : {}) });
 
 const indexer = createIndexer({
   db,

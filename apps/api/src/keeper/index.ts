@@ -25,6 +25,39 @@ export interface KeeperReport {
   errors: number;
 }
 
+/**
+ * Renews every footprint entry of one wallet's agent that is under the renewal threshold.
+ * Returns the number of entries extended. Called on each pass and right after pairing, so
+ * a freshly connected agent's first payment is already cheap (Phase 8: cold ≈ 250–345k
+ * stroops, over the x402 facilitator's 50k ceiling).
+ */
+export async function keepWallet(
+  deps: KeeperDeps,
+  wallet: string,
+  payRule: number,
+  latest?: number,
+): Promise<number> {
+  const { db, cfg, server, log } = deps;
+  const ledger = latest ?? (await server.getLatestLedger()).sequence;
+  const [agent] = await db
+    .select()
+    .from(agents)
+    .where(and(eq(agents.wallet, wallet), eq(agents.payRule, payRule)));
+  const rules = [0, payRule, ...(agent ? [agent.askRule] : [])];
+  const keys = await walletFootprintKeys(server, cfg, wallet, rules);
+  const first = await server.getLedgerEntries(...keys);
+  const codes = codeKeysOf(first.entries);
+  const all = codes.length
+    ? [...first.entries, ...(await server.getLedgerEntries(...codes)).entries]
+    : first.entries;
+  const renew = needsRenewal(all, ledger);
+  if (renew.length === 0) return 0;
+  const { op, sorobanData } = extendOp(renew);
+  const r = await submitAsKeeper(server, cfg, Keypair.fromSecret(deps.secret), op, sorobanData);
+  log('info', 'keeper extended ttl', { wallet, entries: renew.length, hash: r.hash, fee: r.fee });
+  return renew.length;
+}
+
 /** One keeper pass: renew TTLs of every active wallet's footprint, expire stale requests. */
 export async function runKeeper(deps: KeeperDeps): Promise<KeeperReport> {
   const { db, cfg, server, log } = deps;
@@ -36,28 +69,7 @@ export async function runKeeper(deps: KeeperDeps): Promise<KeeperReport> {
   for (const m of active) {
     report.wallets++;
     try {
-      const [agent] = await db
-        .select()
-        .from(agents)
-        .where(and(eq(agents.wallet, m.wallet), eq(agents.payRule, m.ruleId)));
-      const rules = [0, m.ruleId, ...(agent ? [agent.askRule] : [])];
-      const keys = await walletFootprintKeys(server, cfg, m.wallet, rules);
-      const first = await server.getLedgerEntries(...keys);
-      const codes = codeKeysOf(first.entries);
-      const all = codes.length
-        ? [...first.entries, ...(await server.getLedgerEntries(...codes)).entries]
-        : first.entries;
-      const renew = needsRenewal(all, latest);
-      if (renew.length === 0) continue;
-      const { op, sorobanData } = extendOp(renew);
-      const r = await submitAsKeeper(server, cfg, keypair, op, sorobanData);
-      report.extended += renew.length;
-      log('info', 'keeper extended ttl', {
-        wallet: m.wallet,
-        entries: renew.length,
-        hash: r.hash,
-        fee: r.fee,
-      });
+      report.extended += await keepWallet(deps, m.wallet, m.ruleId, latest);
     } catch (e) {
       report.errors++;
       log('error', 'keeper ttl failed', { wallet: m.wallet, error: String(e) });

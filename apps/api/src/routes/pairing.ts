@@ -32,7 +32,12 @@ const pairingBody = z.object({
   mandateHash: z.string().regex(/^[0-9a-f]{64}$/),
 });
 
-export function pairingRoutes(db: Db, cfg: FosayConfig, client: FosayClient): Hono {
+export function pairingRoutes(
+  db: Db,
+  cfg: FosayConfig,
+  client: FosayClient,
+  onPaired?: (wallet: string, payRule: number) => void,
+): Hono {
   const r = new Hono();
 
   /** Stores the human-readable mandate; returns the hash the owner puts on-chain. */
@@ -83,6 +88,7 @@ export function pairingRoutes(db: Db, cfg: FosayConfig, client: FosayClient): Ho
       .insert(agents)
       .values({ wallet: b.wallet, payRule: b.payRule, ...row })
       .onConflictDoUpdate({ target: [agents.wallet, agents.payRule], set: row });
+    onPaired?.(b.wallet, b.payRule);
     const code = encodePairing({
       v: 1,
       network: cfg.network,

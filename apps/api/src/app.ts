@@ -25,6 +25,8 @@ export interface AppContext {
   pusher?: Pusher;
   /** Override the relayer's contract WASM lookup (tests). */
   wasmHashOf?: (contractId: string) => Promise<string | null>;
+  /** Called after an agent is paired (e.g. warm its storage TTLs). */
+  onPaired?: (wallet: string, payRule: number) => void;
 }
 
 /** Builds the HTTP app. Routes are added per feature; all dependencies are injected. */
@@ -48,7 +50,10 @@ export function createApp(ctx: AppContext): Hono {
       }),
     );
   }
-  app.route('/', pairingRoutes(ctx.db, ctx.cfg, ctx.client ?? new FosayClient(ctx.cfg, ctx.server)));
+  app.route(
+    '/',
+    pairingRoutes(ctx.db, ctx.cfg, ctx.client ?? new FosayClient(ctx.cfg, ctx.server), ctx.onPaired),
+  );
   app.onError((err, c) => {
     ctx.log('error', 'unhandled error', { path: c.req.path, error: err.message });
     return c.json({ error: 'internal_error' }, 500);
