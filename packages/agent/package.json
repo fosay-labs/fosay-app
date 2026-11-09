@@ -1,0 +1,27 @@
+{
+  "name": "@fosay/agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FOSAY agent runtime: Ed25519 key management, pay-or-ask, x402 fetch, CLI.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "bin": {
+    "fosay-agent": "./bin/fosay-agent.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fosay/sdk": "workspace:*",
+    "@stellar/stellar-sdk": "16.4.1",
+    "@x402/core": "2.30.0",
+    "@x402/fetch": "2.30.0",
+    "smart-account-kit": "0.10.0",
+    "tsx": "4.23.15",
+    "zod": "4.6.7"
+  }
+}
