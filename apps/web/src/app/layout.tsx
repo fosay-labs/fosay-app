@@ -26,6 +26,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <nav>
             <Link href="/dashboard">Wallet</Link>
             <Link href="/approvals">Approvals</Link>
+            {/* the docs are a separate static site served next to the app */}
+            <a href={`${BASE_PATH}/docs/`}>Docs</a>
           </nav>
         </header>
         <main>{children}</main>

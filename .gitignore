@@ -11,3 +11,5 @@ coverage/
 next-env.d.ts
 # local e2e helpers (use local testnet secrets)
 _e2e-*
+apps/docs/.vitepress/dist/
+apps/docs/.vitepress/cache/

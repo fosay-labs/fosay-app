@@ -19,6 +19,7 @@ ones become requests you approve on your phone with a passkey.
 
 **Try it (testnet):** [fosay-labs.github.io/fosay-app](https://fosay-labs.github.io/fosay-app/) ·
 **Contracts:** [`fosay-labs/fosay-contract`](https://github.com/fosay-labs/fosay-contract) ·
+**Docs:** [fosay-labs.github.io/fosay-app/docs](https://fosay-labs.github.io/fosay-app/docs/) ·
 **Hosting:** [`docs/HOSTING.md`](docs/HOSTING.md)
 
 ## How it fits together
@@ -40,6 +41,7 @@ ones become requests you approve on your phone with a passkey.
 | [`packages/mcp`](packages/mcp) `@fosay/mcp`       | MCP server (stdio) with five tools: `fosay_wallet_status`, `fosay_fetch_paid`, `fosay_request_approval`, `fosay_approval_status`, `fosay_cancel_request`.                                                                                       |
 | [`apps/api`](apps/api) `@fosay/api`               | Hono + Postgres: event indexer, Web Push, fee-paying **relayer** (FOSAY-only guard, fee cap, rate limits), **TTL keeper**, read API, pairing.                                                                                                   |
 | [`apps/web`](apps/web) `@fosay/web`               | Next.js PWA, exported as a static site: create a passkey wallet, connect an agent, dashboard, approvals with an **auth-entry decoder** that shows exactly what the passkey will sign, pause / edit / revoke.                                    |
+| [`apps/docs`](apps/docs) `@fosay/docs`            | Documentation site (VitePress), served at `/fosay-app/docs/` next to the web app.                                                                                                                                                               |
 
 ## Testnet deployment
 

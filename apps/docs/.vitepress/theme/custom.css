@@ -1,0 +1,13 @@
+/* FOSAY green, matching the app and the banner */
+:root {
+  --vp-c-brand-1: #15803d;
+  --vp-c-brand-2: #16a34a;
+  --vp-c-brand-3: #16a34a;
+  --vp-c-brand-soft: rgba(22, 163, 74, 0.14);
+}
+.dark {
+  --vp-c-brand-1: #4ade80;
+  --vp-c-brand-2: #22c55e;
+  --vp-c-brand-3: #16a34a;
+  --vp-c-brand-soft: rgba(74, 222, 128, 0.16);
+}

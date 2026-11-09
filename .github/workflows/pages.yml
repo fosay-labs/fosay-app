@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - apps/web/**
+      - apps/docs/**
       - packages/sdk/**
       - pnpm-lock.yaml
       - .github/workflows/pages.yml
@@ -21,7 +22,7 @@ concurrency:
 
 jobs:
   build:
-    name: build static export
+    name: build static export and docs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,6 +40,12 @@ jobs:
           # Set the repository variable FOSAY_API_URL to the hosted API (see docs/HOSTING.md)
           NEXT_PUBLIC_API_URL: ${{ vars.FOSAY_API_URL || 'https://fosay-api.onrender.com' }}
         run: pnpm build
+      - name: Build docs into /docs
+        env:
+          DOCS_BASE: /${{ github.event.repository.name }}/docs/
+        run: |
+          pnpm --filter @fosay/docs build
+          cp -r apps/docs/.vitepress/dist apps/web/out/docs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/out
