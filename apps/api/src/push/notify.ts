@@ -26,7 +26,7 @@ export function intentNotification(e: Extract<FosayEvent, { kind: 'intent_propos
   return {
     title: `Your agent asks for ${fromBaseUnits(e.amount)} USDC`,
     body: e.memo,
-    data: { intentId: e.id.toString(), url: `/approvals/${e.id.toString()}` },
+    data: { intentId: e.id.toString(), url: `approvals/view/?id=${e.id.toString()}` },
   };
 }
 

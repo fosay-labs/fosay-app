@@ -90,7 +90,7 @@ export default function Dashboard() {
         return (
           <Link
             key={a.payRule}
-            href={`/agents/${a.payRule}`}
+            href={`/agents/view?rule=${a.payRule}`}
             className="card"
             style={{ display: 'block', color: 'inherit' }}
           >

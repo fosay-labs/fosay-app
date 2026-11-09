@@ -2,13 +2,15 @@ import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { BASE_PATH } from '@/lib/config';
+
 import './globals.css';
 
 export const metadata: Metadata = {
   title: 'FOSAY — Funds Only Spent After Yes',
   description: 'A wallet you share with your AI agent. You approve what it spends.',
-  manifest: '/manifest.webmanifest',
-  icons: { icon: '/icon.svg' },
+  manifest: `${BASE_PATH}/manifest.webmanifest`,
+  icons: { icon: `${BASE_PATH}/icon.svg` },
 };
 
 export const viewport: Viewport = { themeColor: '#0b0d10', width: 'device-width', initialScale: 1 };

@@ -39,7 +39,7 @@ export default function Approvals() {
       {pending.map((i) => (
         <Link
           key={i.id}
-          href={`/approvals/${i.id}`}
+          href={`/approvals/view?id=${i.id}`}
           className="card warning"
           style={{ display: 'block', color: 'inherit' }}
         >
@@ -53,7 +53,7 @@ export default function Approvals() {
       ))}
       {done.length > 0 && <h2>History</h2>}
       {done.map((i) => (
-        <Link key={i.id} href={`/approvals/${i.id}`} className="card row" style={{ color: 'inherit' }}>
+        <Link key={i.id} href={`/approvals/view?id=${i.id}`} className="card row" style={{ color: 'inherit' }}>
           <div>
             <div>{i.memo}</div>
             <div className="muted">

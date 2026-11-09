@@ -214,7 +214,7 @@ describe('push', () => {
       data: { url: string };
     };
     expect(payload.title).toBe('Your agent asks for 2.5 USDC');
-    expect(payload.data.url).toBe('/approvals/5');
+    expect(payload.data.url).toBe('approvals/view/?id=5');
     expect(await db.select().from(pushSubscriptions)).toHaveLength(1);
   });
 });

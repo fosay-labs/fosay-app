@@ -1,4 +1,5 @@
 import { api } from './api';
+import { BASE_PATH } from './config';
 
 /** VAPID keys are url-safe base64; PushManager wants the raw bytes. */
 export function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
@@ -21,7 +22,7 @@ export function pushSupported(): boolean {
 }
 
 async function registration(): Promise<ServiceWorkerRegistration> {
-  return navigator.serviceWorker.register('/sw.js');
+  return navigator.serviceWorker.register(`${BASE_PATH}/sw.js`, { scope: `${BASE_PATH}/` });
 }
 
 export async function currentSubscription(): Promise<PushSubscription | null> {

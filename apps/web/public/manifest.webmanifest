@@ -2,9 +2,10 @@
   "name": "FOSAY — Funds Only Spent After Yes",
   "short_name": "FOSAY",
   "description": "Approve what your AI agent spends.",
-  "start_url": "/dashboard",
+  "start_url": "./dashboard/",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0b0d10",
   "theme_color": "#0b0d10",
-  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml" }]
 }

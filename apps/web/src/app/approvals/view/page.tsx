@@ -2,8 +2,8 @@
 
 import type { Intent } from '@fosay/sdk';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 
 import { useWallet } from '@/components/useWallet';
 import { api } from '@/lib/api';
@@ -18,9 +18,8 @@ type ExecuteTx = Awaited<
   ReturnType<ReturnType<ReturnType<typeof getReader>['approvalsContract']>['execute']>
 >;
 
-export default function ReviewRequest() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+function ReviewRequest() {
+  const id = useSearchParams().get('id') ?? '';
   const { address, loading } = useWallet();
   const [onChain, setOnChain] = useState<Intent | null>(null);
   const [fromApi, setFromApi] = useState<ApiIntent | null>(null);
@@ -162,5 +161,14 @@ export default function ReviewRequest() {
       )}
       {error && <p className="error">{error}</p>}
     </>
+  );
+}
+
+// Static export (GitHub Pages) has no dynamic segments, so the id comes from the query string.
+export default function Page() {
+  return (
+    <Suspense fallback={<p className="muted">Loading…</p>}>
+      <ReviewRequest />
+    </Suspense>
   );
 }

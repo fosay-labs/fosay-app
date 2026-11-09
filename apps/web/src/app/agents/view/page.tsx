@@ -3,8 +3,8 @@
 import { fromBaseUnits, mandateHash, toBaseUnits, toHex } from '@fosay/sdk';
 import type { Mandate, MandateDoc } from '@fosay/sdk';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 
 import { useWallet } from '@/components/useWallet';
 import { api } from '@/lib/api';
@@ -13,9 +13,9 @@ import { API_URL, publicConfig } from '@/lib/config';
 import { period, usdc } from '@/lib/format';
 import { OWNER_RULE, getKit, getReader, signAndSubmit, signAndSubmitAdmin } from '@/lib/kit';
 
-export default function AgentSettings() {
-  const params = useParams<{ rule: string }>();
-  const payRule = Number(params.rule);
+function AgentSettings() {
+  const rule = useSearchParams().get('rule') ?? '';
+  const payRule = /^\d+$/.test(rule) ? Number(rule) : NaN;
   const { address, loading } = useWallet();
   const [mandate, setMandate] = useState<Mandate | null>(null);
   const [remaining, setRemaining] = useState<bigint | null>(null);
@@ -174,5 +174,14 @@ export default function AgentSettings() {
       {busy && <p className="muted">{busy}</p>}
       {error && <p className="error">{error}</p>}
     </>
+  );
+}
+
+// Static export (GitHub Pages) has no dynamic segments, so the rule comes from the query string.
+export default function Page() {
+  return (
+    <Suspense fallback={<p className="muted">Loading…</p>}>
+      <AgentSettings />
+    </Suspense>
   );
 }

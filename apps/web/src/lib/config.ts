@@ -15,6 +15,9 @@ export const publicConfig: FosayConfig = fosayConfigSchema.parse({
   ed25519VerifierId: process.env.NEXT_PUBLIC_OZ_ED25519_VERIFIER_ID ?? TESTNET.ed25519VerifierId,
 });
 
+/** Path the app is served under (`/fosay-app` on GitHub Pages, empty locally). */
+export const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH ?? '').replace(/\/$/, '');
+
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8787').replace(/\/$/, '');
 export const RELAYER_URL = process.env.NEXT_PUBLIC_RELAYER_URL ?? `${API_URL}/relay`;
 /** Ledgers per day at ~5 s per ledger. */

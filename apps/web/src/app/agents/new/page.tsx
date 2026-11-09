@@ -116,7 +116,7 @@ export default function ConnectAgent() {
             Pay rule {pairing.payRule}, ask rule {pairing.askRule}. The code contains no secrets.
           </p>
         </div>
-        <Link href={`/agents/${pairing.payRule}`}>View this agent</Link>
+        <Link href={`/agents/view?rule=${pairing.payRule}`}>View this agent</Link>
       </>
     );
   }
