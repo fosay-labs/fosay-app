@@ -74,8 +74,10 @@ per agent.
 | WebAuthn verifier | `CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F` |
 | Ed25519 verifier | `CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4` |
 | USDC SAC | `USDC_TESTNET_ADDRESS` exported by `@x402/stellar` (read it from the package; don't hard-code) |
-| `fosay-mandate-policy` | **`FOSAY_MANDATE_POLICY_ID` — filled after deployment (Phase 8)** |
-| `fosay-approvals` | **`FOSAY_APPROVALS_ID` — filled after deployment (Phase 8)** |
+| `fosay-mandate-policy` | `CABMDEJEXOIBR4F6TDIYQ7CA5GFENXAYDRA4WH7V4QR7PAMTFIEQWWQ5` (deployed 2026-11-09, WASM `46336ed2…`) |
+| `fosay-approvals` | `CAZDF7XQSKLZK5JG4FPCG6ZSGK3C4ZGNBKHU3VYDPQSZWLX2HPRXJCIU` (WASM `867499c4…`) |
+
+Source of truth for IDs: `deployments/testnet.json` (copied from `fosay-contract`). Read IDs from env; never hard-code them in source.
 
 Use only the passkey **`authDigestScheme` known for `c514d35e…`**: smart-account-kit's
 `KNOWN_AUTH_DIGEST_SCHEMES[accountWasmHash]` (`preimage-v1`).
@@ -165,9 +167,13 @@ InvalidAmount 4204, InvalidTtl 4205, MemoTooLong 4206, TooManyPending 4207, Inva
   The mandate policy emits none; never add policies to `:pay` that emit events.
 - The payment's auth entry must have **no sub-invocations**.
 - Auth expiry ≤ `latestLedger + ceil(maxTimeoutSeconds / ledgerSeconds)` (+2 tolerance).
-- Default facilitator fee ceiling: 50,000 stroops. Steady-state smart-account payments cost
-  about 11–16k; the first payment after the account's storage TTL lapses costs about 200k.
-  That's why the keeper exists.
+- Default facilitator fee ceiling: 50,000 stroops. **Measured on testnet (Phase 8):** an agent
+  payment under the mandate policy costs 18,959 (resource fee) / 13,971 (charged). If any
+  entry the payment reads has < 29 days of TTL left, the OZ account renews it during the
+  payment and the cost jumps to ~250–345k → rejected. The keeper prevents that.
+- Payment auth expiry: use `latest + ceil(maxTimeoutSeconds / 5)` and expect servers to set
+  `maxTimeoutSeconds` ≥ 60 (120 is safer). A 10-ledger window expired mid-settlement in
+  testing and the facilitator's transaction failed on-chain.
 
 ## 7. Exact repository structure
 
@@ -259,8 +265,8 @@ fosay-app/
 | `STELLAR_NETWORK` | all | `testnet` | no |
 | `STELLAR_RPC_URL` | all | `https://soroban-testnet.stellar.org` | no |
 | `STELLAR_NETWORK_PASSPHRASE` | all | `Test SDF Network ; September 2015` | no |
-| `FOSAY_MANDATE_POLICY_ID` | all | `C…` **after Phase 8** | no |
-| `FOSAY_APPROVALS_ID` | all | `C…` **after Phase 8** | no |
+| `FOSAY_MANDATE_POLICY_ID` | all | `CABMDEJEXOIBR4F6TDIYQ7CA5GFENXAYDRA4WH7V4QR7PAMTFIEQWWQ5` | no |
+| `FOSAY_APPROVALS_ID` | all | `CAZDF7XQSKLZK5JG4FPCG6ZSGK3C4ZGNBKHU3VYDPQSZWLX2HPRXJCIU` | no |
 | `USDC_SAC_ID` | all | from `USDC_TESTNET_ADDRESS` | no |
 | `OZ_ACCOUNT_WASM_HASH` | web, api | `c514d35e…4b9e1` | no |
 | `OZ_WEBAUTHN_VERIFIER_ID` | web | `CC7EKIHQ…OM3F` | no |
@@ -271,7 +277,7 @@ fosay-app/
 | `KEEPER_SECRET` | api | `S…` (may equal relayer) | **yes** |
 | `KEEPER_INTERVAL_SECONDS` | api | `3600` | no |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | api (web gets public) | `npx web-push generate-vapid-keys` | private: **yes** |
-| `INDEXER_START_LEDGER` | api | ledger of contract deployment | no |
+| `INDEXER_START_LEDGER` | api | `5643488` (first FOSAY deployment on testnet) | no |
 | `NEXT_PUBLIC_API_URL` | web | `http://localhost:8787` | no |
 | `NEXT_PUBLIC_RELAYER_URL` | web | `http://localhost:8787/relay` | no |
 | `NEXT_PUBLIC_*` copies of network/contract ids | web | same values as above | no |
@@ -374,11 +380,21 @@ Store the doc in the API (by hash) so receipts can show what the owner approved.
   from that WASM hash. Reject everything else. Simulate, cap the fee at
   `RELAYER_MAX_FEE_STROOPS`, sign with `RELAYER_SECRET`, submit, poll. Per-IP and
   per-wallet rate limits.
-- **Keeper** (every `KEEPER_INTERVAL_SECONDS`): for each known `(wallet, payRule)`, read
-  `liveUntilLedgerSeq` (`getLedgerEntries`) of the wallet instance, its rule entries and
-  the mandate entry. If within 2 days of expiry, call `extend_ttl` on the policy and submit
-  an `ExtendFootprintTTL` op for the wallet's entries. Call `expire(id)` on pending
-  intents past `expires_ledger`. Log every action.
+- **Keeper** (every `KEEPER_INTERVAL_SECONDS`), as validated in Phase 8
+  (`fosay-contract/scripts/lib.mjs` → `extendFootprint`):
+  1. For each known `(wallet, payRule)`, simulate a 1-unit agent `transfer` (signed with a
+     throwaway signature is fine for the footprint, or reuse the last payment's footprint)
+     and collect every persistent `contractData` and `contractCode` key in its footprint:
+     wallet instance, `ContextRuleData`/`SignerData`/`PolicyData`, the policy's `Mandate`
+     entry, the wallet's token balance, and the account/verifier/policy code.
+  2. Read their `liveUntilLedgerSeq`; if any has < 30 days left, submit one
+     `ExtendFootprintTTL` (extendTo = 31 days = 535,680 ledgers) with those keys read-only.
+     Keeping entries above OZ's 29-day threshold is what keeps payments at ~19k stroops.
+  3. **Shared code entries** (OZ account WASM `c514d35e…`, the verifiers, both FOSAY
+     contracts): on 2026-11-09 the account WASM had ~0 days left on testnet. Archiving it
+     would break every v0.8.0 wallet. Watch these every run.
+  4. Call `expire(id)` on pending intents past `expires_ledger`.
+  Log every action with its fee.
 
 ### 9.8 MCP server (`@fosay/mcp`)
 `McpServer` + `StdioServerTransport`; tools registered with `server.registerTool(name, { description, inputSchema }, handler)`:
@@ -484,6 +500,6 @@ the secret key or accept one as input.
 - [ ] The relayer guard rejects anything that isn't FOSAY-shaped; fees are capped.
 - [ ] The keeper extends TTLs and expires stale intents; every action is logged.
 - [ ] No secret in the repo, logs, MCP outputs, or `NEXT_PUBLIC_*`.
-- [ ] Contract IDs come from env (placeholders until Phase 8), never hard-coded.
+- [ ] Contract IDs come from env (values in `deployments/testnet.json`), never hard-coded.
 - [ ] Every commit pushed immediately; conventional messages; no `git add .`.
 - [ ] Open questions are written down, not guessed.
