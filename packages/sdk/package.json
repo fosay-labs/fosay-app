@@ -1,0 +1,24 @@
+{
+  "name": "@fosay/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FOSAY SDK: contract clients, agent auth signing, x402 smart-account payer, error decoding.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./x402": "./src/x402/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "16.4.1",
+    "@x402/core": "2.30.0",
+    "@x402/stellar": "2.30.0",
+    "buffer": "6.0.3",
+    "smart-account-kit": "0.10.0",
+    "zod": "4.6.7"
+  }
+}
