@@ -139,6 +139,7 @@ describe('FosayExactStellarScheme', () => {
       expect(err).toBeInstanceOf(FosayError);
       expect((err as FosayError).code).toBe('NEEDS_APPROVAL');
       expect((err as FosayError).details['reason']).toBe(reason);
+      expect(scheme.lastError).toBe(err);
       expect(simulateTransaction).not.toHaveBeenCalled();
     }
   });

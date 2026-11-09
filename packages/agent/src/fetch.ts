@@ -59,7 +59,7 @@ export async function fosayFetch(
     const settlement = decodePaymentResponseHeader(header);
     return { kind: 'response', response, paid: true, transaction: settlement.transaction };
   } catch (e) {
-    const fe = findFosayError(e);
+    const fe = findFosayError(e) ?? scheme.lastError;
     if (!fe || fe.code !== 'NEEDS_APPROVAL') throw fe ?? e;
     const d = fe.details as unknown as PaymentPreflight;
     const method = (init.method ?? 'GET').toUpperCase();

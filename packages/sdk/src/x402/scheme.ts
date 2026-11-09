@@ -33,6 +33,11 @@ export function x402Network(network: 'testnet' | 'mainnet'): `stellar:${string}`
  */
 export class FosayExactStellarScheme implements SchemeNetworkClient {
   readonly scheme = 'exact';
+  /**
+   * The last error thrown by `createPaymentPayload`. x402's client re-throws scheme errors
+   * as plain `Error`s without a `cause`, so callers read the typed error from here.
+   */
+  lastError: FosayError | undefined;
 
   constructor(
     private readonly client: FosayClient,
@@ -41,6 +46,16 @@ export class FosayExactStellarScheme implements SchemeNetworkClient {
   ) {}
 
   async createPaymentPayload(x402Version: number, req: PaymentRequirements): Promise<PaymentPayloadResult> {
+    this.lastError = undefined;
+    try {
+      return await this.create(x402Version, req);
+    } catch (e) {
+      if (e instanceof FosayError) this.lastError = e;
+      throw e;
+    }
+  }
+
+  private async create(x402Version: number, req: PaymentRequirements): Promise<PaymentPayloadResult> {
     const cfg = this.client.cfg;
     const { wallet, payRule } = this.signer.identity;
     if (req.scheme !== 'exact') throw new FosayError('INVALID_INPUT', `unsupported scheme ${req.scheme}`);
