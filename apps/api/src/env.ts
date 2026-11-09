@@ -21,6 +21,11 @@ const apiEnvSchema = z.object({
   VAPID_SUBJECT: z.string().optional(),
   INDEXER_START_LEDGER: z.coerce.number().int().nonnegative(),
   INDEXER_POLL_SECONDS: z.coerce.number().positive().default(5),
+  TRUSTED_PROXY_HOPS: z.coerce.number().int().min(1).default(1),
+  CLIENT_IP_HEADER: z
+    .string()
+    .regex(/^[a-z0-9-]+$/i)
+    .optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

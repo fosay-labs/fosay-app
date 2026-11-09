@@ -37,6 +37,6 @@ describe('api scaffold', () => {
     const app = createApp({ env, cfg, server: {} as rpc.Server, log: silentLogger, db: await testDb() });
     const res = await app.request('/health');
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, network: 'testnet' });
+    expect(await res.json()).toEqual({ ok: true, network: 'testnet', indexedLedger: null });
   });
 });

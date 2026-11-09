@@ -11,6 +11,7 @@ import {
 import type { rpc } from '@stellar/stellar-sdk';
 import { describe, expect, it, vi } from 'vitest';
 
+import { clientIp } from '../relayer/ratelimit';
 import { relayerRoutes } from '../relayer/route';
 import { silentLogger } from '../log';
 
@@ -113,5 +114,15 @@ describe('relayer route', () => {
     const seqs = s.getAccount.mock.results.length;
     expect(seqs).toBe(2);
     expect((await post(r, { func: executeFunc, auth: [] })).status).toBe(429);
+  });
+
+  it('reads the client address from the trusted end of X-Forwarded-For', () => {
+    const h = (xff?: string, extra: Record<string, string> = {}) => (n: string) =>
+      n === 'x-forwarded-for' ? xff : extra[n];
+    expect(clientIp(h('6.6.6.6, 1.2.3.4'), 1)).toBe('1.2.3.4'); // forged left entry ignored
+    expect(clientIp(h('1.2.3.4, 10.0.0.1'), 2)).toBe('1.2.3.4');
+    expect(clientIp(h('1.2.3.4'), 3)).toBe('1.2.3.4');
+    expect(clientIp(h(undefined), 1)).toBe('local');
+    expect(clientIp(h('6.6.6.6', { 'cf-connecting-ip': '9.9.9.9' }), 1, 'cf-connecting-ip')).toBe('9.9.9.9');
   });
 });

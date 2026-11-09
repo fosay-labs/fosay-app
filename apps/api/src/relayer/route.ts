@@ -6,7 +6,7 @@ import type { Context } from 'hono';
 
 import type { Logger } from '../log';
 import { checkRelayRequest } from './guard';
-import { RateLimiter } from './ratelimit';
+import { RateLimiter, clientIp } from './ratelimit';
 
 export interface RelayerDeps {
   cfg: FosayConfig;
@@ -17,6 +17,8 @@ export interface RelayerDeps {
   /** Override for tests; defaults to reading the contract instance's executable. */
   wasmHashOf?: (contractId: string) => Promise<string | null>;
   limits?: { perIpPerMinute: number; perWalletPerMinute: number };
+  /** How the client address is found behind proxies (see `clientIp`). */
+  proxy?: { hops: number; header?: string };
 }
 
 type RelayError =
@@ -71,7 +73,7 @@ export function relayerRoutes(deps: RelayerDeps): Hono {
   };
 
   r.post('/', async (c) => {
-    const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? 'local';
+    const ip = clientIp((n) => c.req.header(n), deps.proxy?.hops ?? 1, deps.proxy?.header);
     if (!perIp.allow(ip)) return fail(c, 429, 'RATE_LIMITED', 'too many requests');
     const body = (await c.req.json().catch(() => null)) as {
       func?: unknown;
