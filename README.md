@@ -33,24 +33,24 @@ ones become requests you approve on your phone with a passkey.
                                         └──x402 payment──▶ paid API ──▶ x402 facilitator ──▶ Stellar
 ```
 
-| Workspace | What it is |
-|---|---|
-| [`packages/sdk`](packages/sdk) `@fosay/sdk` | Contract clients, the **x402 payer scheme for smart accounts**, agent auth-entry signing with an allowlist, readable contract errors (`BudgetExceeded`, `PerTxLimitExceeded`, …), mandate hashing, pairing codes. Runs in Node and the browser. |
-| [`packages/agent`](packages/agent) `@fosay/agent` | Agent runtime: key file (0600), pay-or-ask `fosayFetch` (pays HTTP 402 within the mandate, otherwise opens an approval request), `fosay-agent` CLI. |
-| [`packages/mcp`](packages/mcp) `@fosay/mcp` | MCP server (stdio) with five tools: `fosay_wallet_status`, `fosay_fetch_paid`, `fosay_request_approval`, `fosay_approval_status`, `fosay_cancel_request`. |
-| [`apps/api`](apps/api) `@fosay/api` | Hono + Postgres: event indexer, Web Push, fee-paying **relayer** (FOSAY-only guard, fee cap, rate limits), **TTL keeper**, read API, pairing. |
-| [`apps/web`](apps/web) `@fosay/web` | Next.js PWA, exported as a static site: create a passkey wallet, connect an agent, dashboard, approvals with an **auth-entry decoder** that shows exactly what the passkey will sign, pause / edit / revoke. |
+| Workspace                                         | What it is                                                                                                                                                                                                                                      |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`packages/sdk`](packages/sdk) `@fosay/sdk`       | Contract clients, the **x402 payer scheme for smart accounts**, agent auth-entry signing with an allowlist, readable contract errors (`BudgetExceeded`, `PerTxLimitExceeded`, …), mandate hashing, pairing codes. Runs in Node and the browser. |
+| [`packages/agent`](packages/agent) `@fosay/agent` | Agent runtime: key file (0600), pay-or-ask `fosayFetch` (pays HTTP 402 within the mandate, otherwise opens an approval request), `fosay-agent` CLI.                                                                                             |
+| [`packages/mcp`](packages/mcp) `@fosay/mcp`       | MCP server (stdio) with five tools: `fosay_wallet_status`, `fosay_fetch_paid`, `fosay_request_approval`, `fosay_approval_status`, `fosay_cancel_request`.                                                                                       |
+| [`apps/api`](apps/api) `@fosay/api`               | Hono + Postgres: event indexer, Web Push, fee-paying **relayer** (FOSAY-only guard, fee cap, rate limits), **TTL keeper**, read API, pairing.                                                                                                   |
+| [`apps/web`](apps/web) `@fosay/web`               | Next.js PWA, exported as a static site: create a passkey wallet, connect an agent, dashboard, approvals with an **auth-entry decoder** that shows exactly what the passkey will sign, pause / edit / revoke.                                    |
 
 ## Testnet deployment
 
-| | |
-|---|---|
-| Web app | [fosay-labs.github.io/fosay-app](https://fosay-labs.github.io/fosay-app/) (GitHub Pages) |
-| API | Render free web service + Supabase Postgres ([setup](docs/HOSTING.md)) |
-| `fosay-mandate-policy` | `CABMDEJEXOIBR4F6TDIYQ7CA5GFENXAYDRA4WH7V4QR7PAMTFIEQWWQ5` |
-| `fosay-approvals` | `CAZDF7XQSKLZK5JG4FPCG6ZSGK3C4ZGNBKHU3VYDPQSZWLX2HPRXJCIU` |
-| OZ smart account WASM | `c514d35ea67eaea9bfc1fb3327854c0c06111bc1ddebd4fe217c504c1004b9e1` |
-| USDC (testnet SAC) | `CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA` |
+|                        |                                                                                          |
+| ---------------------- | ---------------------------------------------------------------------------------------- |
+| Web app                | [fosay-labs.github.io/fosay-app](https://fosay-labs.github.io/fosay-app/) (GitHub Pages) |
+| API                    | Render free web service + Supabase Postgres ([setup](docs/HOSTING.md))                   |
+| `fosay-mandate-policy` | `CABMDEJEXOIBR4F6TDIYQ7CA5GFENXAYDRA4WH7V4QR7PAMTFIEQWWQ5`                               |
+| `fosay-approvals`      | `CAZDF7XQSKLZK5JG4FPCG6ZSGK3C4ZGNBKHU3VYDPQSZWLX2HPRXJCIU`                               |
+| OZ smart account WASM  | `c514d35ea67eaea9bfc1fb3327854c0c06111bc1ddebd4fe217c504c1004b9e1`                       |
+| USDC (testnet SAC)     | `CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA`                               |
 
 Full record: [`deployments/testnet.json`](deployments/testnet.json). Every package defaults to
 these values; see [`.env.example`](.env.example).
@@ -125,7 +125,7 @@ origin, API built with the Render Blueprint's exact commands on another):
    facilitator within its default 50,000-stroop fee ceiling.
 4. The agent asks for an over-budget payment. The review screen decodes
    `approvals.execute(#8) → transfer 3 … to GBP5…` from the transaction itself, and the passkey approves it.
-5. The dashboard shows the balance, "4 left of 5", and activity attributed as *paid by agent* / *you approved*.
+5. The dashboard shows the balance, "4 left of 5", and activity attributed as _paid by agent_ / _you approved_.
 
 ## Security
 
@@ -154,9 +154,9 @@ and open a PR against `main`.
 
 ## Maintainers
 
-| Maintainer | Role | GitHub |
-|---|---|---|
-| ciscokwiz | Lead maintainer (contracts, app) | [@ciscokwiz](https://github.com/ciscokwiz) |
+| Maintainer | Role                             | GitHub                                     |
+| ---------- | -------------------------------- | ------------------------------------------ |
+| ciscokwiz  | Lead maintainer (contracts, app) | [@ciscokwiz](https://github.com/ciscokwiz) |
 
 Questions and ideas: [GitHub Discussions](https://github.com/fosay-labs/fosay-app/discussions).
 

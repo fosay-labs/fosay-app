@@ -10,6 +10,7 @@ versions follow [SemVer](https://semver.org/).
 First testnet release, against `fosay-contract` v0.1.0-testnet.
 
 ### Added
+
 - `@fosay/sdk`: contract clients, x402 payer scheme for OZ smart accounts, agent auth-entry
   signing with an allowlist, simulation error decoding, mandate hashing, pairing codes.
 - `@fosay/agent`: key file handling, pay-or-ask `fosayFetch`, `fosay-agent` CLI.
