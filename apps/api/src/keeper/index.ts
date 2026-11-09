@@ -7,8 +7,9 @@ import { and, eq, lt } from 'drizzle-orm';
 import type { Db } from '../db/client';
 import { agents, intents, mandates } from '../db/schema';
 import type { Logger } from '../log';
+import { errorText } from '../log';
 import { submitAsKeeper } from './submit';
-import { codeKeysOf, extendOp, needsRenewal, walletFootprintKeys } from './ttl';
+import { codeKeysOf, dedupeKeys, extendOp, needsRenewal, walletFootprintKeys } from './ttl';
 
 export interface KeeperDeps {
   db: Db;
@@ -46,7 +47,9 @@ export async function keepWallet(
   const rules = [0, payRule, ...(agent ? [agent.askRule] : [])];
   const keys = await walletFootprintKeys(server, cfg, wallet, rules);
   const first = await server.getLedgerEntries(...keys);
-  const codes = codeKeysOf(first.entries);
+  // code entries not already requested (the account code is in `keys`), each once
+  const requested = new Set(keys.map((k) => k.toXDR('base64')));
+  const codes = dedupeKeys(codeKeysOf(first.entries)).filter((c) => !requested.has(c.toXDR('base64')));
   const all = codes.length
     ? [...first.entries, ...(await server.getLedgerEntries(...codes)).entries]
     : first.entries;
@@ -72,7 +75,7 @@ export async function runKeeper(deps: KeeperDeps): Promise<KeeperReport> {
       report.extended += await keepWallet(deps, m.wallet, m.ruleId, latest);
     } catch (e) {
       report.errors++;
-      log('error', 'keeper ttl failed', { wallet: m.wallet, error: String(e) });
+      log('error', 'keeper ttl failed', { wallet: m.wallet, error: errorText(e) });
     }
   }
 
@@ -92,7 +95,7 @@ export async function runKeeper(deps: KeeperDeps): Promise<KeeperReport> {
       log('info', 'keeper expired intent', { intentId: i.id, hash: r.hash, fee: r.fee });
     } catch (e) {
       report.errors++;
-      log('error', 'keeper expire failed', { intentId: i.id, error: String(e) });
+      log('error', 'keeper expire failed', { intentId: i.id, error: errorText(e) });
     }
   }
   log('info', 'keeper pass done', { ...report });
@@ -107,7 +110,7 @@ export function startKeeper(deps: KeeperDeps, intervalMs: number): () => void {
     try {
       await runKeeper(deps);
     } catch (e) {
-      deps.log('error', 'keeper pass failed', { error: String(e) });
+      deps.log('error', 'keeper pass failed', { error: errorText(e) });
     } finally {
       running = false;
     }

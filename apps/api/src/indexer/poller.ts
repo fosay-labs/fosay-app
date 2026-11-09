@@ -5,6 +5,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import type { Db } from '../db/client';
 import { agents, cursors, intents, mandates, payments, wallets } from '../db/schema';
 import type { Logger } from '../log';
+import { errorText } from '../log';
 import { walletRuleIds } from './attribution';
 import { decodeEvent } from './decode';
 import type { FosayEvent, RawEvent } from './decode';
@@ -222,7 +223,7 @@ export function createIndexer(deps: IndexerDeps): Indexer {
       try {
         applied = await tick();
       } catch (err) {
-        log('error', 'indexer tick failed', { error: String(err) });
+        log('error', 'indexer tick failed', { error: errorText(err) });
       }
       // drain quickly while there is backlog
       timer = setTimeout(() => void loop(), applied >= PAGE ? 200 : intervalMs);

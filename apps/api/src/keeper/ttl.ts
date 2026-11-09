@@ -91,7 +91,22 @@ export async function walletFootprintKeys(
   }
   for (const c of contracts) keys.push(instanceKey(c));
   keys.push(codeKey(cfg.accountWasmHash));
-  return keys;
+  return dedupeKeys(keys);
+}
+
+/**
+ * Removes duplicate ledger keys. The agent's signer is on both its `:pay` and `:ask` rules,
+ * and RPC `getLedgerEntries` fails on duplicate keys (testnet answered with an opaque
+ * "could not query captive core … 404").
+ */
+export function dedupeKeys(keys: xdr.LedgerKey[]): xdr.LedgerKey[] {
+  const seen = new Set<string>();
+  return keys.filter((k) => {
+    const id = k.toXDR('base64');
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
 }
 
 /** Adds the code entries of contract instances found among `entries`. */

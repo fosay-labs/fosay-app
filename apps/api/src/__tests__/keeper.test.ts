@@ -8,6 +8,8 @@ import type { rpc } from '@stellar/stellar-sdk';
 import { describe, expect, it } from 'vitest';
 
 import { ruleIdsFromEnvelope } from '../indexer/attribution';
+import { dedupeKeys } from '../keeper/ttl';
+import { errorText } from '../log';
 import {
   EXTEND_TO_LEDGERS,
   RENEW_BELOW_LEDGERS,
@@ -92,5 +94,18 @@ describe('keeper decisions', () => {
     expect(op.body().extendFootprintTtlOp().extendTo()).toBe(EXTEND_TO_LEDGERS);
     expect(sorobanData.resources().footprint().readOnly()).toHaveLength(2);
     expect(sorobanData.resources().footprint().readWrite()).toHaveLength(0);
+  });
+});
+
+describe('keeper robustness', () => {
+  it('dedupes keys (agent signer is on both pay and ask rules)', () => {
+    const k = ozKeys.signer(env.wallet, 1);
+    expect(dedupeKeys([k, ozKeys.rule(env.wallet, 1), ozKeys.signer(env.wallet, 1)])).toHaveLength(2);
+  });
+  it('renders RPC error objects readably', () => {
+    expect(errorText({ code: -32603, message: 'could not query captive core' })).toBe(
+      '-32603: could not query captive core',
+    );
+    expect(errorText(new Error('boom'))).toBe('boom');
   });
 });

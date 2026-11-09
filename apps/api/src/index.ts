@@ -7,7 +7,7 @@ import { createIndexer } from './indexer/poller';
 import { keepWallet, startKeeper } from './keeper';
 import { createPusher } from './push/notify';
 import { loadEnv } from './env';
-import { jsonLogger } from './log';
+import { errorText, jsonLogger } from './log';
 
 const { env, cfg } = loadEnv(process.env as Record<string, string | undefined>);
 const server = rpcServer(cfg);
@@ -18,7 +18,7 @@ const onPaired = keeperSecret
   ? (wallet: string, payRule: number) => {
       // warm a newly connected agent's storage so its first payment is cheap
       keepWallet({ db, cfg, server, secret: keeperSecret, log: jsonLogger }, wallet, payRule).catch(
-        (e: unknown) => jsonLogger('warn', 'post-pairing keeper failed', { wallet, error: String(e) }),
+        (e: unknown) => jsonLogger('warn', 'post-pairing keeper failed', { wallet, error: errorText(e) }),
       );
     }
   : undefined;
