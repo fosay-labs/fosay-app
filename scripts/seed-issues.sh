@@ -664,3 +664,359 @@ Paste the real output in the PR. Read `CONTRIBUTING.md` first.
 BODY
 issue "feat(web): add a Content-Security-Policy to the static export" "wave,tier/medium,area/web,enhancement,security-sensitive" "$tmp/16.md"
 
+cat > "$tmp/17.md" <<'BODY'
+## Summary
+
+The docs explain the three core flows in text and ASCII. Add sequence diagrams (owner, web app, API, wallet contract, policy, approvals, agent, facilitator) so a reviewer can see the whole flow at a glance.
+
+## Context
+
+- Pages: `apps/docs/guide/how-it-works.md`, `apps/docs/protocol/approvals.md`, `apps/docs/users/owner.md`.
+- Flows are implemented in `apps/web/src/app/agents/new/page.tsx` (connect), `packages/agent/src/fetch.ts` (pay or ask) and `apps/web/src/app/approvals/view/page.tsx` (approve).
+
+## Acceptance criteria
+
+- [ ] Three diagrams: connect agent (2 passkey prompts and pairing), agent payment via x402, and request → push → approve.
+- [ ] Diagrams render in light and dark mode and at phone width.
+- [ ] Every arrow matches a real call in the code (name the function in the label).
+- [ ] `pnpm --filter @fosay/docs build` passes.
+
+## Out of scope
+
+- Rewriting page text.
+
+## Tech stack
+
+VitePress 1.6, vitepress-plugin-mermaid (or inline SVG)
+
+## Verify before opening the PR
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Paste the real output in the PR. Read `CONTRIBUTING.md` first.
+
+## Complexity
+
+`tier/trivial`. Claim it by commenting “I'll take this”. A claim with no activity for 7 days goes back to the pool.
+BODY
+issue "docs: sequence diagrams for connecting an agent, paying and approving" "wave,tier/trivial,area/docs,documentation,good first issue" "$tmp/17.md"
+
+cat > "$tmp/18.md" <<'BODY'
+## Summary
+
+Generate an OpenAPI 3.1 document from the API's zod schemas, serve it at `/openapi.json`, and render it in the docs, so client authors get exact shapes.
+
+## Context
+
+- Schemas: `apps/api/src/routes/*.ts` (`pairingBody`, `mandateDocSchema`, `subscribeBody`, query schemas).
+- Hand-written reference: `apps/docs/developers/api.md`.
+
+## Acceptance criteria
+
+- [ ] `GET /openapi.json` serves a valid OpenAPI 3.1 document covering every route, including `/relay` error codes.
+- [ ] A test validates the document and checks that every registered route appears in it.
+- [ ] The docs API page links to it (or embeds it), and the hand-written examples stay.
+- [ ] No route behaviour changes.
+
+## Out of scope
+
+- Changing request or response shapes.
+
+## Tech stack
+
+Hono, zod 4, @hono/zod-openapi or zod-to-openapi, VitePress
+
+## Verify before opening the PR
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Paste the real output in the PR. Read `CONTRIBUTING.md` first.
+
+## Complexity
+
+`tier/medium`. Claim it by commenting “I'll take this”. A claim with no activity for 7 days goes back to the pool.
+BODY
+issue "docs(api): publish an OpenAPI description of the HTTP API" "wave,tier/medium,area/api,documentation" "$tmp/18.md"
+
+cat > "$tmp/19.md" <<'BODY'
+## Summary
+
+The SDK and agent runtime are only usable from the workspace, and they export TypeScript sources. Build them to ESM with type declarations and publish them with npm provenance, so agent developers can `npm install @fosay/agent`.
+
+## Context
+
+- `packages/sdk/package.json` exports `./src/index.ts` and `./src/x402/index.ts`. `packages/agent` depends on it through `workspace:*`.
+- The web app consumes the SDK through `transpilePackages` (`apps/web/next.config.ts`), which must keep working.
+
+## Acceptance criteria
+
+- [ ] Both packages build to `dist/` (ESM + `.d.ts`) with `exports` maps; the workspace still uses sources in development.
+- [ ] A release workflow publishes on a tag with `npm publish --provenance` (maintainers add the npm token).
+- [ ] A smoke test installs the packed tarballs in a clean directory and runs a script that imports them.
+- [ ] READMEs show `npm install` usage.
+
+## Out of scope
+
+- Publishing the API or web app.
+
+## Tech stack
+
+TypeScript, tsup or tsc, npm provenance, GitHub Actions
+
+## Verify before opening the PR
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Paste the real output in the PR. Read `CONTRIBUTING.md` first.
+
+## Complexity
+
+`tier/medium`. Claim it by commenting “I'll take this”. A claim with no activity for 7 days goes back to the pool.
+BODY
+issue "chore(sdk): publish @fosay/sdk and @fosay/agent to npm" "wave,tier/medium,area/sdk,enhancement" "$tmp/19.md"
+
+cat > "$tmp/20.md" <<'BODY'
+## Summary
+
+A wallet has one owner passkey. If it lives only on a lost security key, the wallet is gone. Let the owner add a second passkey (another device) as a signer on rule 0, list the owner's passkeys, and remove one.
+
+> **Security-sensitive.** Post your approach on this issue and get a maintainer's OK before writing code.
+
+## Context
+
+- Owner rule 0 is `Default` with one WebAuthn External signer, created in onboarding (`apps/web/src/app/onboard/page.tsx`, `lib/kit.ts`).
+- OZ accounts support multiple signers per rule. Check the account's add/remove signer entry points and how smart-account-kit exposes them.
+- Owner guide: `apps/docs/users/owner.md` → “If you lose your passkey”.
+
+## Acceptance criteria
+
+- [ ] A **Passkeys** section lists the owner rule's signers, with names from the app's storage.
+- [ ] **Add a backup passkey** registers a new credential (it can be on another device via cross-device WebAuthn) and adds it to rule 0, authorized by an existing passkey.
+- [ ] Removing a passkey is refused when it is the last signer.
+- [ ] Approvals work with either passkey (manual testnet run documented in the PR).
+- [ ] The owner guide is updated.
+
+## Out of scope
+
+- Social recovery or guardians (separate design).
+
+## Tech stack
+
+Next.js 16, smart-account-kit 0.10, OpenZeppelin stellar-accounts 0.8 (rules, External signers, WebAuthn verifier)
+
+## Verify before opening the PR
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Paste the real output in the PR. Read `CONTRIBUTING.md` first.
+
+## Complexity
+
+`tier/high`. Claim it by commenting “I'll take this”. A claim with no activity for 7 days goes back to the pool.
+BODY
+issue "feat(web): add a backup passkey to the wallet" "wave,tier/high,area/web,enhancement,security-sensitive" "$tmp/20.md"
+
+cat > "$tmp/21.md" <<'BODY'
+## Summary
+
+The agent page shows limits and remaining budget, but not the mandate document the owner approved (purpose, recipients, expiry) or what the agent has spent. Add both.
+
+## Context
+
+- Agent page: `apps/web/src/app/agents/view/page.tsx`. Mandate documents: `GET /mandate-docs/:hash`. Activity: `GET /wallets/:address/activity` (`via: "agent"`).
+
+## Acceptance criteria
+
+- [ ] The page shows the mandate document fields and checks that its hash matches the on-chain `mandate_hash` (a mismatch shows a warning).
+- [ ] A list of the agent's payments (amount, recipient, time, transaction link) with simple paging.
+- [ ] Unit tests for the hash check and the filtering.
+
+## Out of scope
+
+- Charts (separate issue if wanted).
+
+## Tech stack
+
+Next.js 16, React 19, @fosay/sdk
+
+## Verify before opening the PR
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Paste the real output in the PR. Read `CONTRIBUTING.md` first.
+
+## Complexity
+
+`tier/medium`. Claim it by commenting “I'll take this”. A claim with no activity for 7 days goes back to the pool.
+BODY
+issue "feat(web): show the agent's mandate document and spending history" "wave,tier/medium,area/web,enhancement" "$tmp/21.md"
+
+cat > "$tmp/22.md" <<'BODY'
+## Summary
+
+Owners who track agent spending want a file. Add an **Export CSV** button to the dashboard activity list.
+
+## Context
+
+- Dashboard: `apps/web/src/app/dashboard/page.tsx`. Data: `api.activity(address, limit)` in `apps/web/src/lib/api.ts`. Amounts are base units, so format with `fromBaseUnits`.
+
+## Acceptance criteria
+
+- [ ] The CSV has the columns `date, kind, via, to, amount_usdc, status, request_id, tx_hash`.
+- [ ] Values are escaped correctly (memo text can contain commas and quotes).
+- [ ] A unit test covers the CSV builder.
+
+## Out of scope
+
+- Server-side exports.
+
+## Tech stack
+
+Next.js 16, React 19
+
+## Verify before opening the PR
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Paste the real output in the PR. Read `CONTRIBUTING.md` first.
+
+## Complexity
+
+`tier/trivial`. Claim it by commenting “I'll take this”. A claim with no activity for 7 days goes back to the pool.
+BODY
+issue "feat(web): export wallet activity as CSV" "wave,tier/trivial,area/web,enhancement,good first issue" "$tmp/22.md"
+
+cat > "$tmp/23.md" <<'BODY'
+## Summary
+
+Keeper and indexer tests use recorded fixtures. Add an integration job that starts a local Stellar network, deploys the FOSAY contracts and an OZ wallet, and checks that the keeper renews TTLs and the indexer records events.
+
+## Context
+
+- Keeper: `apps/api/src/keeper/`. Indexer: `apps/api/src/indexer/poller.ts`. Contract deploy script: `fosay-contract/scripts/deploy.mjs`.
+
+## Acceptance criteria
+
+- [ ] A workflow job runs `stellar/quickstart` (local, with Soroban RPC), deploys the contracts and a wallet with an agent rule, and runs the API against it.
+- [ ] It asserts that after one keeper pass every footprint entry has more than 29 days of TTL, and that an agent payment and a `propose` show up via the API.
+- [ ] The job is required on pull requests that touch `apps/api/**` and takes under 10 minutes.
+
+## Out of scope
+
+- Testnet in CI.
+
+## Tech stack
+
+stellar/quickstart Docker image, GitHub Actions service containers, PGlite or Postgres
+
+## Verify before opening the PR
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Paste the real output in the PR. Read `CONTRIBUTING.md` first.
+
+## Complexity
+
+`tier/medium`. Claim it by commenting “I'll take this”. A claim with no activity for 7 days goes back to the pool.
+BODY
+issue "test(api): run the keeper and indexer against a local Stellar network in CI" "wave,tier/medium,area/api,testing" "$tmp/23.md"
+
+cat > "$tmp/24.md" <<'BODY'
+## Summary
+
+The MCP server only speaks stdio, so it must run on the same machine as the client. Add an opt-in Streamable HTTP transport bound to localhost by default, with a bearer token, for agents running in containers.
+
+> **Security-sensitive.** Post your approach on this issue and get a maintainer's OK before writing code.
+
+## Context
+
+- Server: `packages/mcp/src/index.ts` (stdio) and `tools.ts`. The tools must keep never returning key material.
+
+## Acceptance criteria
+
+- [ ] `fosay-mcp --http --port 7420` serves Streamable HTTP on 127.0.0.1 and refuses requests without `Authorization: Bearer $FOSAY_MCP_TOKEN`.
+- [ ] Binding to a non-loopback address needs an explicit `--host` flag and prints a warning.
+- [ ] Tests cover auth refusal and one tool call over HTTP.
+- [ ] The docs MCP page documents it.
+
+## Out of scope
+
+- Remote multi-user hosting.
+
+## Tech stack
+
+@modelcontextprotocol/sdk 1.32, Node http
+
+## Verify before opening the PR
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Paste the real output in the PR. Read `CONTRIBUTING.md` first.
+
+## Complexity
+
+`tier/medium`. Claim it by commenting “I'll take this”. A claim with no activity for 7 days goes back to the pool.
+BODY
+issue "feat(mcp): optional Streamable HTTP transport" "wave,tier/medium,area/mcp,enhancement,security-sensitive" "$tmp/24.md"
+
+cat > "$tmp/25.md" <<'BODY'
+## Summary
+
+Collect the errors people actually hit and how to fix them: proxy and fetch errors, relayer refusals, `BudgetExceeded` vs `Paused`, archived entries, passkeys not offered on a new domain, push notifications on iPhone.
+
+## Context
+
+- Error codes: `apps/docs/contracts/errors.md`. Relayer errors: `apps/docs/developers/api.md`. Hosting pitfalls: `docs/HOSTING.md`.
+
+## Acceptance criteria
+
+- [ ] `apps/docs/guide/troubleshooting.md` with at least 10 entries, each with the exact message, the cause and the fix.
+- [ ] Linked from the sidebar and from the owner and operator guides.
+
+## Out of scope
+
+- Code changes.
+
+## Tech stack
+
+VitePress 1.6
+
+## Verify before opening the PR
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Paste the real output in the PR. Read `CONTRIBUTING.md` first.
+
+## Complexity
+
+`tier/trivial`. Claim it by commenting “I'll take this”. A claim with no activity for 7 days goes back to the pool.
+BODY
+issue "docs: troubleshooting page for common errors" "wave,tier/trivial,area/docs,documentation,good first issue" "$tmp/25.md"
+

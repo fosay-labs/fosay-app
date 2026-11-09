@@ -22,6 +22,15 @@ ones become requests you approve on your phone with a passkey.
 **Docs:** [fosay-labs.github.io/fosay-app/docs](https://fosay-labs.github.io/fosay-app/docs/) ·
 **Hosting:** [`docs/HOSTING.md`](docs/HOSTING.md)
 
+## See it in action
+
+A 3-minute recording of a real testnet run: passkey wallet, connect agent, the agent pays
+1 USDC via x402 on its own, asks for 3 USDC over its cap, the owner approves with a passkey.
+
+<a href="media/fosay-demo.mp4"><img src="media/fosay-demo-poster.png" width="260" alt="FOSAY demo: the review screen decoding what the passkey will sign"></a>
+
+[Watch `media/fosay-demo.mp4`](media/fosay-demo.mp4) (3 min, 1.1 MB)
+
 ## How it fits together
 
 ```
