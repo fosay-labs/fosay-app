@@ -1,0 +1,27 @@
+{
+  "name": "@fosay/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FOSAY owner app: passkey wallet, connect agents, approve requests.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@fosay/sdk": "workspace:*",
+    "@stellar/stellar-sdk": "16.4.1",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "smart-account-kit": "0.10.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  }
+}

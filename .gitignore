@@ -7,3 +7,4 @@ coverage/
 !.env.example
 *.tsbuildinfo
 .fosay/
+next-env.d.ts
