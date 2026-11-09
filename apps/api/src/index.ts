@@ -4,6 +4,7 @@ import { serve } from '@hono/node-server';
 import { createApp } from './app';
 import { connectDb } from './db/client';
 import { createIndexer } from './indexer/poller';
+import { startKeeper } from './keeper';
 import { createPusher } from './push/notify';
 import { loadEnv } from './env';
 import { jsonLogger } from './log';
@@ -29,3 +30,12 @@ indexer.start(env.INDEXER_POLL_SECONDS * 1000);
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   jsonLogger('info', 'fosay api listening', { port: info.port, network: cfg.network });
 });
+
+if (env.KEEPER_SECRET) {
+  startKeeper(
+    { db, cfg, server, secret: env.KEEPER_SECRET, log: jsonLogger },
+    env.KEEPER_INTERVAL_SECONDS * 1000,
+  );
+} else {
+  jsonLogger('warn', 'KEEPER_SECRET not set: TTL keeper disabled (agent payments will get expensive)');
+}
