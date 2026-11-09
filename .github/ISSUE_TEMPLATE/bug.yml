@@ -1,0 +1,44 @@
+name: Bug report
+description: Something doesn't work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security issue?** Don't file it here. Use [private reporting](https://github.com/fosay-labs/fosay-app/security/advisories/new).
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - sdk
+        - agent
+        - mcp
+        - api
+        - web
+        - deploy
+        - ci
+        - docs
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Commands, transaction hashes, contract IDs or a failing test.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Node and pnpm versions, browser and OS (for web), network (testnet / local)
+    validations:
+      required: true
