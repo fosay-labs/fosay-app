@@ -14,7 +14,7 @@ export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.u
 
 /** Postgres via postgres-js; runs pending migrations before returning. */
 export async function connectDb(url: string): Promise<{ db: Db; close: () => Promise<void> }> {
-  const sql = postgres(url, { max: 10 });
+  const sql = postgres(url, { max: 10, onnotice: () => undefined });
   const db = drizzle(sql, { schema });
   await migrate(db, { migrationsFolder: MIGRATIONS_DIR });
   return { db: db as unknown as Db, close: () => sql.end() };

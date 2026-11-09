@@ -28,6 +28,8 @@ describe('api scaffold', () => {
     expect(cfg).toEqual(TESTNET);
     expect(() => loadEnv({ ...baseEnv, RELAYER_SECRET: 'nope' })).toThrow(/RELAYER_SECRET/);
     expect(() => loadEnv({ ...baseEnv, INDEXER_START_LEDGER: undefined })).toThrow(/INDEXER_START_LEDGER/);
+    const seed = 'SBHG7C3KNZCZPP2SCBLAHH6TBQNI6K6RX2RPOAMMSKMRJ5LB6ZHO7MGG';
+    expect(() => loadEnv({ ...baseEnv, RELAYER_SECRET: seed, KEEPER_SECRET: seed })).toThrow(/must differ/);
   });
 
   it('serves /health', async () => {

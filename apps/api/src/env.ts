@@ -25,9 +25,17 @@ const apiEnvSchema = z.object({
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
 
+const distinctAccounts = (e: ApiEnv) =>
+  !e.RELAYER_SECRET || !e.KEEPER_SECRET || e.RELAYER_SECRET !== e.KEEPER_SECRET;
+
 /** Validates the API environment; throws listing every bad variable (values not echoed). */
 export function loadEnv(raw: Record<string, string | undefined>): { env: ApiEnv; cfg: FosayConfig } {
-  const parsed = apiEnvSchema.safeParse(raw);
+  const parsed = apiEnvSchema
+    .refine(distinctAccounts, {
+      path: ['KEEPER_SECRET'],
+      message: 'must differ from RELAYER_SECRET (shared accounts collide on sequence numbers)',
+    })
+    .safeParse(raw);
   if (!parsed.success) {
     const lines = parsed.error.issues.map((i) => `  ${String(i.path[0])}: ${i.message}`);
     throw new Error(`Invalid API environment:\n${lines.join('\n')}`);
