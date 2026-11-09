@@ -1,0 +1,22 @@
+name: Keep the hosted API awake
+
+# Render's free plan stops a web service after 15 minutes without inbound requests, which
+# also stops the indexer, push notifications and the TTL keeper. A request every 10 minutes
+# keeps it running (one always-on service fits the 750 free instance hours a month).
+# Set the repository variable FOSAY_API_URL; without it this workflow does nothing.
+# On a paid instance, delete this file.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    name: ping /health
+    runs-on: ubuntu-latest
+    if: vars.FOSAY_API_URL != ''
+    steps:
+      - run: curl -fsS --retry 3 --retry-delay 20 --max-time 90 "${{ vars.FOSAY_API_URL }}/health"

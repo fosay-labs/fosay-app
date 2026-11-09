@@ -1,0 +1,48 @@
+# Render Blueprint for the FOSAY API (indexer, relayer, keeper, push, read API).
+# The web app is a static site on GitHub Pages; the database is Supabase Postgres.
+# Setup steps and the reasons behind each choice: docs/HOSTING.md
+services:
+  - type: web
+    name: fosay-api
+    runtime: node
+    plan: free
+    region: oregon
+    # the API imports the workspace SDK, so it builds from the repository root
+    buildCommand: corepack pnpm install --frozen-lockfile --filter @fosay/api...
+    startCommand: cd apps/api && ./node_modules/.bin/tsx src/index.ts
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/sdk/**
+        - pnpm-lock.yaml
+        - package.json
+        - render.yaml
+    envVars:
+      - key: NODE_VERSION
+        value: 22.23.4
+      - key: COREPACK_ENABLE_DOWNLOAD_PROMPT
+        value: '0'
+      - key: STELLAR_NETWORK
+        value: testnet
+      - key: CORS_ORIGIN
+        value: https://fosay-labs.github.io
+      - key: INDEXER_START_LEDGER
+        value: '5643488'
+      - key: KEEPER_INTERVAL_SECONDS
+        value: '3600'
+      - key: TRUSTED_PROXY_HOPS
+        value: '1'
+      - key: VAPID_SUBJECT
+        value: https://github.com/fosay-labs/fosay-app
+      # secrets: entered once in the Render dashboard when the Blueprint is created
+      - key: DATABASE_URL
+        sync: false
+      - key: RELAYER_SECRET
+        sync: false
+      - key: KEEPER_SECRET
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false

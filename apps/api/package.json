@@ -10,7 +10,8 @@
     "start": "tsx src/index.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "secrets": "node scripts/gen-secrets.mjs"
   },
   "dependencies": {
     "@fosay/sdk": "workspace:*",
