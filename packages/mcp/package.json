@@ -20,6 +20,7 @@
     "@fosay/agent": "workspace:*",
     "@fosay/sdk": "workspace:*",
     "@modelcontextprotocol/sdk": "1.32.2",
+    "@stellar/stellar-sdk": "16.4.1",
     "tsx": "4.23.15",
     "zod": "4.6.7"
   }
