@@ -83,13 +83,23 @@ The API creates its tables on start.
 
 If the name `fosay-api` is taken, Render adds a suffix. Use the URL Render shows.
 
-### 4. Point the web app and keep-alive at the API (GitHub)
+### 4. Turn on Pages and point the web app at the API (GitHub)
 
-1. `fosay-app` → Settings → Secrets and variables → Actions → **Variables** → New variable
+One command does all of this, plus topics, branch protection and private vulnerability
+reporting for both repos (needs `gh auth login` as an org admin):
+
+```bash
+bash scripts/apply-repo-settings.sh https://<service>.onrender.com
+```
+
+Or by hand:
+
+1. `fosay-app` → Settings → **Pages** → Source: **GitHub Actions**.
+2. Settings → Secrets and variables → Actions → **Variables** → New variable
    `FOSAY_API_URL` = the Render URL, without a trailing slash.
-2. Actions → **Deploy web app to GitHub Pages** → Run workflow. The API URL is built into the
+3. Actions → **Deploy web app to GitHub Pages** → Run workflow. The API URL is built into the
    static files, so the site must be rebuilt whenever it changes.
-3. The keep-alive workflow starts on its own once the variable exists.
+4. The keep-alive workflow starts on its own once the variable exists.
 
 ### 5. Check it
 
