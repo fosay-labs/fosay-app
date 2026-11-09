@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { createApp } from '../app';
 import { loadEnv } from '../env';
 import { silentLogger } from '../log';
+import { testDb } from './testdb';
 
 export const baseEnv = {
   DATABASE_URL: 'postgres://x',
@@ -31,7 +32,7 @@ describe('api scaffold', () => {
 
   it('serves /health', async () => {
     const { env, cfg } = loadEnv(baseEnv);
-    const app = createApp({ env, cfg, server: {} as rpc.Server, log: silentLogger });
+    const app = createApp({ env, cfg, server: {} as rpc.Server, log: silentLogger, db: await testDb() });
     const res = await app.request('/health');
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, network: 'testnet' });
