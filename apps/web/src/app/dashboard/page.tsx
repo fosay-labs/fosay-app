@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+import { PushToggle } from '@/components/PushToggle';
 import { useWallet } from '@/components/useWallet';
 import { api } from '@/lib/api';
 import type { ActivityItem, ApiWallet } from '@/lib/api';
@@ -75,6 +76,8 @@ export default function Dashboard() {
           for your yes →
         </Link>
       )}
+
+      <PushToggle wallet={address} />
 
       <div className="row">
         <h2>Agents</h2>
