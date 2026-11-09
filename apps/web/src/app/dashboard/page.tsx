@@ -83,7 +83,8 @@ export default function Dashboard() {
         <h2>Agents</h2>
         <Link href="/agents/new">+ Connect agent</Link>
       </div>
-      {agents.length === 0 && <p className="muted">No agents connected yet.</p>}
+      {!view && <p className="muted">Loading agents…</p>}
+      {view && agents.length === 0 && <p className="muted">No agents connected yet.</p>}
       {agents.map((a) => {
         const m = mandates.find((x) => x.ruleId === a.payRule);
         return (
@@ -109,6 +110,7 @@ export default function Dashboard() {
 
       <h2>Activity</h2>
       {view?.apiError && <p className="muted">Activity unavailable: {view.apiError}</p>}
+      {!view && <p className="muted">Loading activity…</p>}
       {view?.activity.length === 0 && <p className="muted">Nothing yet.</p>}
       {view?.activity.map((i) => (
         <div key={`${i.kind}-${i.txHash}-${i.kind === 'request' ? i.id : i.to}`} className="card row">
