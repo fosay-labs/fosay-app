@@ -1,3 +1,4 @@
+import { FosayClient } from '@fosay/sdk';
 import type { FosayConfig } from '@fosay/sdk';
 import type { rpc } from '@stellar/stellar-sdk';
 import { Hono } from 'hono';
@@ -7,6 +8,7 @@ import type { Db } from './db/client';
 import type { ApiEnv } from './env';
 import type { Logger } from './log';
 import { intentRoutes } from './routes/intents';
+import { pairingRoutes } from './routes/pairing';
 import { walletRoutes } from './routes/wallets';
 
 export interface AppContext {
@@ -15,6 +17,8 @@ export interface AppContext {
   server: rpc.Server;
   log: Logger;
   db: Db;
+  /** Contract reads (defaults to a client on `server`). */
+  client?: FosayClient;
 }
 
 /** Builds the HTTP app. Routes are added per feature; all dependencies are injected. */
@@ -24,6 +28,7 @@ export function createApp(ctx: AppContext): Hono {
   app.get('/health', (c) => c.json({ ok: true, network: ctx.cfg.network }));
   app.route('/wallets', walletRoutes(ctx.db));
   app.route('/intents', intentRoutes(ctx.db));
+  app.route('/', pairingRoutes(ctx.db, ctx.cfg, ctx.client ?? new FosayClient(ctx.cfg, ctx.server)));
   app.onError((err, c) => {
     ctx.log('error', 'unhandled error', { path: c.req.path, error: err.message });
     return c.json({ error: 'internal_error' }, 500);
