@@ -45,4 +45,6 @@ export type { InvokeSpec } from './simulate';
 export { ApprovalsBindings, FosayClient, MandatePolicyBindings } from './clients';
 export type { Intent, IntentStatus, Mandate, ProposeArgs } from './clients';
 export { AgentSigner, classifyAgentEntry } from './auth';
+export { decodePairing, encodePairing, pairingSchema } from './pairing';
+export type { Pairing } from './pairing';
 export type { AgentAction, AgentIdentity } from './auth';

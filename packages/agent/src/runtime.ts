@@ -1,35 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { FosayError, loadConfigFromEnv } from '@fosay/sdk';
-import type { AgentIdentity, FosayConfig } from '@fosay/sdk';
-import { z } from 'zod';
+import { FosayError, decodePairing, encodePairing, loadConfigFromEnv, pairingSchema } from '@fosay/sdk';
+import type { AgentIdentity, FosayConfig, Pairing } from '@fosay/sdk';
 
 import { FosayAgent } from './agent';
 import { expandHome, keyInfo, loadAgentSecret } from './keys';
 
-/** What the owner's web app hands the agent after connecting it (base64url JSON). */
-export const pairingSchema = z.object({
-  v: z.literal(1),
-  network: z.enum(['testnet', 'mainnet']),
-  wallet: z.string(),
-  payRule: z.number().int().nonnegative(),
-  askRule: z.number().int().nonnegative(),
-  agentPublicKey: z.string().regex(/^[0-9a-f]{64}$/),
-});
-export type Pairing = z.infer<typeof pairingSchema>;
-
-export function encodePairing(p: Pairing): string {
-  return Buffer.from(JSON.stringify(p), 'utf8').toString('base64url');
-}
-
-export function decodePairing(code: string): Pairing {
-  try {
-    return pairingSchema.parse(JSON.parse(Buffer.from(code.trim(), 'base64url').toString('utf8')));
-  } catch {
-    throw new FosayError('INVALID_INPUT', 'not a valid FOSAY pairing code');
-  }
-}
+export { decodePairing, encodePairing, pairingSchema };
+export type { Pairing };
 
 type Env = Record<string, string | undefined>;
 
