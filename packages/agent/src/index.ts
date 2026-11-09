@@ -11,3 +11,13 @@ export { findFosayError, fosayFetch } from './fetch';
 export type { FosayFetchOptions, FosayFetchResult } from './fetch';
 export { expandHome, generateAgentKey, keyInfo, loadAgentSecret } from './keys';
 export type { AgentKeyInfo } from './keys';
+export {
+  decodePairing,
+  encodePairing,
+  loadAgentRuntime,
+  loadIdentity,
+  pairingSchema,
+  savePairing,
+  walletFile,
+} from './runtime';
+export type { AgentRuntime, Pairing } from './runtime';
