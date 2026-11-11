@@ -77,13 +77,13 @@ More: [app release](https://github.com/fosay-labs/fosay-app/releases/tag/v0.1.0-
 
 ## Planned issues
 
-There are 41 open issues labelled `wave`, all with acceptance-criteria checklists and a
+There are 42 open issues labelled `wave`, all with acceptance-criteria checklists and a
 complexity tier.
 
 | Repository     | Issues | Trivial | Medium | High | Good first issue |
 | -------------- | ------ | ------- | ------ | ---- | ---------------- |
 | fosay-contract | 16     | 6       | 7      | 3    | 6                |
-| fosay-app      | 25     | 7       | 13     | 5    | 7                |
+| fosay-app      | 26     | 7       | 14     | 5    | 7                |
 
 Issues that change auth, signing or fund flows carry `security-sensitive`. These need an
 agreed approach on the issue before any code.
@@ -115,7 +115,8 @@ agreed approach on the issue before any code.
   - verify the agent key against the on-chain rule at pairing (#3);
   - a Content-Security-Policy for the static app (#17);
   - persistent rate limits (#15);
-  - a backup passkey on the owner rule (#21).
+  - a backup passkey on the owner rule (#21);
+  - reconnecting a wallet when the third-party smart-account indexer is unreachable (#27).
 - **Payments:** MPP support from the smart account (#4); the hosted x402 facilitator with
   real testnet USDC (#5).
 - **Reliability and operations:**
