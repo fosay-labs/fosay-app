@@ -20,7 +20,7 @@ services:
         - render.yaml
     envVars:
       - key: NODE_VERSION
-        value: 22.23.4
+        value: '22'
       - key: COREPACK_ENABLE_DOWNLOAD_PROMPT
         value: '0'
       - key: STELLAR_NETWORK
