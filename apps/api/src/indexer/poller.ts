@@ -157,6 +157,11 @@ export function createIndexer(deps: IndexerDeps): Indexer {
             updatedLedger: e.ledger,
           })
           .where(and(eq(mandates.wallet, e.wallet), eq(mandates.ruleId, e.ruleId)));
+        // keep the agent record on the mandate the owner just approved
+        await db
+          .update(agents)
+          .set({ mandateHash: e.mandateHash })
+          .where(and(eq(agents.wallet, e.wallet), eq(agents.payRule, e.ruleId)));
         return;
       case 'mandate_paused':
         await db

@@ -16,6 +16,9 @@ export const MAX_AUTH_ENTRIES = 4;
 
 const APPROVALS_FNS = new Set(['propose', 'execute', 'cancel', 'expire']);
 const POLICY_FNS = new Set(['set_paused', 'update_mandate', 'extend_ttl']);
+// Wallet admin the owner app performs. Deliberately excluded: `execute` (the wallet calling
+// any contract, which would make the relayer a free fee payer for arbitrary calls) and
+// `upgrade` (replacing the wallet code). Owners can still do both with their own fee account.
 const WALLET_FNS = new Set([
   'add_context_rule',
   'remove_context_rule',
@@ -26,8 +29,6 @@ const WALLET_FNS = new Set([
   'remove_signer',
   'add_policy',
   'remove_policy',
-  'execute',
-  'upgrade',
 ]);
 
 const deny = (reason: string): GuardResult => ({ ok: false, reason });

@@ -1,9 +1,9 @@
 import { TESTNET } from '@fosay/sdk';
 import type { rpc } from '@stellar/stellar-sdk';
-import { Contract } from '@stellar/stellar-sdk';
+import { Contract, nativeToScVal, xdr } from '@stellar/stellar-sdk';
 import { describe, expect, it, vi } from 'vitest';
 
-import { cursors, intents, mandates, payments, wallets } from '../db/schema';
+import { agents, cursors, intents, mandates, payments, wallets } from '../db/schema';
 import { createIndexer } from '../indexer/poller';
 import { silentLogger } from '../log';
 import { fixtureEvents } from './decode.test';
@@ -70,5 +70,65 @@ describe('indexer poller on real testnet events', () => {
     const before = (await db.select().from(payments)).length;
     await indexer.tick();
     expect((await db.select().from(payments)).length).toBe(before);
+  });
+
+  it('moves mandate and agent to the new hash on mandate_updated', async () => {
+    const { token, events } = fixtureEvents();
+    const installed = events.find((e) => String(e.topic[0]?.sym()) === 'mandate_installed');
+    if (!installed) throw new Error('fixture has no mandate_installed');
+    const db = await testDb();
+    const cfg = { ...TESTNET, usdcId: token };
+    await createIndexer({
+      db,
+      cfg,
+      server: fakeServer([[installed]]),
+      log: silentLogger,
+      startLedger: 1,
+    }).tick();
+    const [m] = await db.select().from(mandates);
+    if (!m) throw new Error('mandate not indexed');
+    await db.insert(agents).values({
+      wallet: m.wallet,
+      payRule: m.ruleId,
+      askRule: m.ruleId + 1,
+      agentPublicKey: 'ab'.repeat(32),
+      name: 'bot',
+      mandateHash: m.mandateHash,
+    });
+    const newHash = 'cd'.repeat(32);
+    const updated = {
+      ...installed,
+      id: `${installed.id}-upd`,
+      ledger: installed.ledger + 1,
+      topic: [xdr.ScVal.scvSymbol('mandate_updated'), ...installed.topic.slice(1)],
+      value: nativeToScVal(
+        {
+          budget: 70_000_000n,
+          max_per_tx: 20_000_000n,
+          recipients: [],
+          mandate_hash: Buffer.from(newHash, 'hex'),
+        },
+        {
+          type: {
+            budget: ['symbol', 'i128'],
+            max_per_tx: ['symbol', 'i128'],
+            recipients: ['symbol', null],
+            mandate_hash: ['symbol', null],
+          },
+        },
+      ),
+    };
+    await createIndexer({
+      db,
+      cfg,
+      server: fakeServer([[updated]]),
+      log: silentLogger,
+      startLedger: 1,
+    }).tick();
+    const [m2] = await db.select().from(mandates);
+    expect(m2?.budget).toBe('70000000');
+    expect(m2?.mandateHash).toBe(newHash);
+    const [a] = await db.select().from(agents);
+    expect(a?.mandateHash).toBe(newHash);
   });
 });

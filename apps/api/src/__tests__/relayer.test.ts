@@ -117,8 +117,10 @@ describe('relayer route', () => {
   });
 
   it('reads the client address from the trusted end of X-Forwarded-For', () => {
-    const h = (xff?: string, extra: Record<string, string> = {}) => (n: string) =>
-      n === 'x-forwarded-for' ? xff : extra[n];
+    const h =
+      (xff?: string, extra: Record<string, string> = {}) =>
+      (n: string) =>
+        n === 'x-forwarded-for' ? xff : extra[n];
     expect(clientIp(h('6.6.6.6, 1.2.3.4'), 1)).toBe('1.2.3.4'); // forged left entry ignored
     expect(clientIp(h('1.2.3.4, 10.0.0.1'), 2)).toBe('1.2.3.4');
     expect(clientIp(h('1.2.3.4'), 3)).toBe('1.2.3.4');

@@ -85,6 +85,13 @@ describe('relayer guard', () => {
   const denied: [string, xdr.HostFunction, xdr.SorobanAuthorizationEntry[], RegExp][] = [
     ['upload wasm', xdr.HostFunction.hostFunctionTypeUploadContractWasm(Buffer.alloc(8)), [], /not relayed/],
     ['other contract', invoke(stranger, 'add_context_rule'), [], /not relayed/],
+    [
+      'wallet execute (arbitrary call)',
+      invoke(wallet, 'execute', [a(stranger)]),
+      [],
+      /wallet.execute is not relayed/,
+    ],
+    ['wallet upgrade', invoke(wallet, 'upgrade'), [], /wallet.upgrade is not relayed/],
     ['unknown contract', invoke(StrKey.encodeContract(Buffer.alloc(32, 3)), 'transfer'), [], /not relayed/],
     ['usdc from G account', invoke(TESTNET.usdcId, 'transfer', [a(relayer), a(wallet)]), [], /FOSAY wallets/],
     ['usdc approve', invoke(TESTNET.usdcId, 'approve', [a(wallet)]), [], /not relayed/],
