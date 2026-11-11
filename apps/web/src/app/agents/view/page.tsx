@@ -12,6 +12,7 @@ import type { ApiAgent } from '@/lib/api';
 import { API_URL, publicConfig } from '@/lib/config';
 import { period, usdc } from '@/lib/format';
 import { OWNER_RULE, getKit, getReader, signAndSubmit, signAndSubmitAdmin } from '@/lib/kit';
+import { rulesToRevoke } from '@/lib/revoke';
 
 function AgentSettings() {
   const rule = useSearchParams().get('rule') ?? '';
@@ -107,10 +108,17 @@ function AgentSettings() {
     });
 
   const revoke = () =>
-    run('Revoking (2 passkey prompts)…', async () => {
+    run('Revoking (one passkey prompt per rule)…', async () => {
       const kit = getKit();
-      await signAndSubmitAdmin(await kit.rules.remove(payRule));
-      if (agent) await signAndSubmitAdmin(await kit.rules.remove(agent.askRule));
+      // Read the agent's rules from the wallet, not the API, so a missing API record or a
+      // cancelled prompt can't leave the agent able to ask for approvals.
+      const ids = rulesToRevoke(
+        await kit.rules.list(),
+        payRule,
+        publicConfig.ed25519VerifierId,
+        agent?.askRule,
+      );
+      for (const id of ids) await signAndSubmitAdmin(await kit.rules.remove(id));
       setRevoked(true);
     });
 

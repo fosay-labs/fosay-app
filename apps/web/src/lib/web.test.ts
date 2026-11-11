@@ -6,6 +6,7 @@ import { period, short, usdc } from './format';
 import { PERIODS, buildMandate, ruleSlug } from './mandate-form';
 import type { AgentForm } from './mandate-form';
 import { urlBase64ToUint8Array } from './push';
+import { agentKeyOf, rulesToRevoke } from './revoke';
 
 describe('format', () => {
   it('formats USDC from base units without float drift', () => {
@@ -74,5 +75,44 @@ describe('mandate form', () => {
 describe('push', () => {
   it('decodes url-safe base64 VAPID keys', () => {
     expect(Array.from(urlBase64ToUint8Array('AQID_-8'))).toEqual([1, 2, 3, 255, 239]);
+  });
+});
+
+describe('revoke', () => {
+  const V = TESTNET.ed25519VerifierId;
+  const W = TESTNET.webauthnVerifierId;
+  const ext = (verifier: string, byte: number) =>
+    ({ tag: 'External', values: [verifier, Buffer.alloc(32, byte)] }) as const;
+  const rules = [
+    { id: 0, name: 'owner', signers: [ext(W, 9)] },
+    { id: 1, name: 'bot:pay', signers: [ext(V, 1)] },
+    { id: 2, name: 'bot:ask', signers: [ext(V, 1)] },
+    { id: 3, name: 'other:pay', signers: [ext(V, 2)] },
+    { id: 4, name: 'other:ask', signers: [ext(V, 2)] },
+    { id: 5, name: 'bot2:ask', signers: [ext(V, 1)] }, // same key, another agent's rule
+  ];
+
+  it('finds the agent key on its Ed25519 signer', () => {
+    expect(agentKeyOf(rules[1]!, V)).toBe('01'.repeat(32));
+    expect(agentKeyOf(rules[0]!, V)).toBeNull();
+  });
+
+  it('removes the ask rule first, then the payment rule, without the API', () => {
+    expect(rulesToRevoke(rules, 1, V)).toEqual([2, 1]);
+    expect(rulesToRevoke(rules, 3, V, 4)).toEqual([4, 3]);
+  });
+
+  it('retries cleanly after a cancelled prompt and never touches the owner', () => {
+    const afterAsk = rules.filter((r) => r.id !== 2);
+    expect(rulesToRevoke(afterAsk, 1, V)).toEqual([1]);
+    expect(
+      rulesToRevoke(
+        rules.filter((r) => r.id > 2),
+        1,
+        V,
+        2,
+      ),
+    ).toEqual([]);
+    expect(rulesToRevoke(rules, 1, V, 0)).not.toContain(0);
   });
 });
