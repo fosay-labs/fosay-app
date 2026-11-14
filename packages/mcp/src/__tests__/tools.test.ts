@@ -67,11 +67,12 @@ async function connect(agent: AgentLike, fetchPaid?: FetchPaid) {
 }
 
 describe('FOSAY MCP tools', () => {
-  it('lists the five wallet tools', async () => {
+  it('lists the six wallet tools', async () => {
     const { client } = await connect(fakeAgent());
     const names = (await client.listTools()).tools.map((t) => t.name).sort();
     expect(names).toEqual([
       'fosay_approval_status',
+      'fosay_budget',
       'fosay_cancel_request',
       'fosay_fetch_paid',
       'fosay_request_approval',
@@ -84,6 +85,19 @@ describe('FOSAY MCP tools', () => {
     const { data } = await call('fosay_wallet_status');
     expect(data['remainingBudget']).toEqual({ usdc: '3', baseUnits: '30000000' });
     expect(data['maxPerPayment']).toEqual({ usdc: '2', baseUnits: '20000000' });
+    expect(JSON.stringify(data)).not.toMatch(/agentPublicKey|secret/);
+  });
+
+  it('reports budget with remaining, budget, maxPerTx and periodHours, never the key', async () => {
+    const { call } = await connect(fakeAgent());
+    const { data, isError } = await call('fosay_budget', {});
+    expect(isError).toBe(false);
+    expect(data).toEqual({
+      remaining: { usdc: '3', baseUnits: '30000000' },
+      budget: { usdc: '5', baseUnits: '50000000' },
+      maxPerTx: { usdc: '2', baseUnits: '20000000' },
+      periodHours: 24,
+    });
     expect(JSON.stringify(data)).not.toMatch(/agentPublicKey|secret/);
   });
 
