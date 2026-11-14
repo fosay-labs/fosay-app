@@ -51,6 +51,15 @@ export function statusView(s: AgentStatus) {
   };
 }
 
+export function budgetView(s: AgentStatus) {
+  return {
+    remaining: money(s.remaining),
+    budget: money(s.budget),
+    maxPerTx: money(s.maxPerTx),
+    periodHours: Number((s.periodLedgers / LEDGERS_PER_HOUR).toFixed(2)),
+  };
+}
+
 export function intentView(i: Intent) {
   return {
     id: i.id.toString(),
@@ -92,6 +101,22 @@ export function registerFosayTools(
     async () => {
       try {
         return ok(statusView(await agent.status()));
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    'fosay_budget',
+    {
+      title: 'FOSAY spending budget',
+      description:
+        'Remaining budget, total period budget, per-payment cap and window length in hours for the FOSAY wallet this agent spends from.',
+    },
+    async () => {
+      try {
+        return ok(budgetView(await agent.status()));
       } catch (e) {
         return fail(e);
       }
