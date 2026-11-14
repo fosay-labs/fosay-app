@@ -7,8 +7,9 @@ import { PushToggle } from '@/components/PushToggle';
 import { useWallet } from '@/components/useWallet';
 import { api } from '@/lib/api';
 import type { ActivityItem, ApiWallet } from '@/lib/api';
-import { getReader } from '@/lib/kit';
+import { activityToCsv } from '@/lib/csv';
 import { VIA_LABEL, period, short, usdc } from '@/lib/format';
+import { getReader } from '@/lib/kit';
 
 interface View {
   balance: bigint;
@@ -61,6 +62,22 @@ export default function Dashboard() {
 
   const agents = view?.wallet?.agents.filter((a) => !a.revoked) ?? [];
   const mandates = view?.wallet?.mandates ?? [];
+  const activity = view?.activity ?? [];
+
+  function exportCsv() {
+    if (!address || activity.length === 0) return;
+    const csv = activityToCsv(activity);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `fosay-activity-${short(address)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       <h1>Wallet</h1>
@@ -108,7 +125,17 @@ export default function Dashboard() {
         );
       })}
 
-      <h2>Activity</h2>
+      <div className="row">
+        <h2>Activity</h2>
+        <button
+          className="secondary"
+          disabled={activity.length === 0}
+          onClick={exportCsv}
+          type="button"
+        >
+          Export CSV
+        </button>
+      </div>
       {view?.apiError && <p className="muted">Activity unavailable: {view.apiError}</p>}
       {!view && <p className="muted">Loading activity…</p>}
       {view?.activity.length === 0 && <p className="muted">Nothing yet.</p>}
